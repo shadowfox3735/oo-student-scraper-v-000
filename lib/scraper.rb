@@ -19,29 +19,23 @@ class Scraper
   end
 
   def self.scrape_profile_page(profile_url)
-     doc = Nokogiri::HTML(open(profile_url))
-        student_quote = doc.css("div.profile-quote").text
-        student_bio = doc.css(".description-holder p").text  
-         student = {}
-        doc.css(".social-icon-container a").each do |account| 
-          social_media_account = account.attr("href")
-           if social_media_account.include?("twitter") 
-             student_twitter = social_media_account  
-             student_twitter ? student[:twitter] = student_twitter : student[:twitter] = nil
-           elsif social_media_account.include?("github")
-             student_github = social_media_account
-             student_github ? student[:github] = student_github : student[:github] = nil
-           elsif social_media_account.include?("linkedin")
-             student_linkedin = social_media_account
-             student_linkedin ? student[:linkedin] = student_linkedin : student[:linkedin] = nil
-           else 
-               student_blog = social_media_account
-               student_blog ? student[:blog] = student_blog : student[:blog] = nil
-           end
-        end
-            student_bio ? student[:bio] = student_bio : student[:bio] = nil
-           student_quote ? student[:profile_quote] = student_quote : student[:profile_quote] = nil
-         student
+     page = Nokogiri::HTML(open(profile_url))
+     student = {}
+     container = page.css(".social-icon-container a").collect{|icon| icon.attribute("href").value}
+     container.each do |link|
+       if link.include?("twitter")
+         student[:twitter] = link
+       elsif link.include?("linkedin")
+         student[:linkedin] = link
+       elsif link.include?("github")
+         student[:github] = link
+       elsif link.include?(".com")
+         student[:blog] = link
+       end
+     end
+     student[:profile_quote] = page.css(".profile-quote").text
+     student[:bio] = page.css("div.description-holder p").text
+     student
     end
 
 end
